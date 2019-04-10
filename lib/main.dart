@@ -24,14 +24,49 @@ class RandowWords extends StatefulWidget {
 class RandomWordsState extends State<RandowWords> {
   final _suggestions = <WordPair>[];
   final _biggerFont = const TextStyle(fontSize: 18.0);
+  final _saved = Set<WordPair>();
 
   @override
   Widget build(BuildContext context) {
     return new Scaffold(
-      appBar: new AppBar(title: new Text('!!Startup Name Generator!!')),
+      appBar: new AppBar(
+        title: new Text('!!Startup Name Generator!!'),
+        actions: <Widget>[
+          IconButton(icon: Icon(Icons.list), onPressed: _pushSaved),
+          IconButton(icon: Icon(Icons.remove), onPressed: _removed)
+        ],
+      ),
       body: _buildSuggestions(),
     );
   }
+
+  void _pushSaved() {
+    Navigator.of(context).push(MaterialPageRoute(builder: (context) {
+      final tiles = _saved.map((pair) {
+        return ListTile(
+          title: Text(
+            pair.asPascalCase,
+            style: _biggerFont,
+          ),
+        );
+      });
+      final divided = ListTile.divideTiles(
+        tiles: tiles,
+        context: context,
+      ).toList();
+
+      return Scaffold(
+        appBar: AppBar(
+          title: Text('Saved Suggestions'),
+        ),
+        body: ListView(
+          children: divided,
+        ),
+      );
+    }));
+  }
+
+  void _removed() {}
 
   Widget _buildSuggestions() {
     return new ListView.builder(
@@ -43,16 +78,34 @@ class RandomWordsState extends State<RandowWords> {
         }
         return _buildRow(_suggestions[index]);
       },
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.all(2.0),
     );
   }
 
   Widget _buildRow(WordPair pair) {
-    return new ListTile(
+    final alreadySaved = _saved.contains(pair);
+
+    return ListTile(
       title: new Text(
         pair.asPascalCase,
         style: _biggerFont,
       ),
+      trailing: IconButton(
+        icon: alreadySaved ? Icon(Icons.favorite) : Icon(Icons.favorite_border),
+        color: alreadySaved ? Colors.red : null,
+        onPressed: () {
+          setState(() {
+            if (alreadySaved) {
+              _saved.remove(pair);
+            } else {
+              _saved.add(pair);
+            }
+          });
+        },
+      ),
+      onTap: () {
+        print('click $pair');
+      },
     );
   }
 }
